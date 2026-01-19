@@ -1,32 +1,234 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Hello, World!</title>
-	</head>
-	<body>
-		<h1 id="heading"></h1>
-		<p>This page comes from a static asset stored at `public/index.html` as configured in `wrangler.jsonc`.</p>
-		<button id="button" type="button">Fetch a random UUID</button>
-		<output id="random" for="button"></output>
-		<script>
-			fetch('/message')
-				.then((resp) => resp.text())
-				.then((text) => {
-					const h1 = document.getElementById('heading');
-					h1.textContent = text;
-				});
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Feedback Dashboard</title>
+	<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+	<div class="container">
+		<!-- Sidebar -->
+		<aside class="sidebar">
+			<div class="logo">
+				<!-- <div class="logo-icon"></div> -->
+				<span>Cloudflare Feedback Dashboard</span>
+			</div>
 
-			const button = document.getElementById("button");
-			button.addEventListener("click", () => {
-				fetch('/random')
-					.then((resp) => resp.text())
-					.then((text) => {
-						const random = document.getElementById('random');
-						random.textContent = text;
-					});
-			});
-		</script>
-	</body>
+			<div class="user-profile">
+				<!-- <div class="user-avatar">Swindar</div> -->
+				<div class="user-info">
+					<div class="user-name">Feedback Admin</div>
+					<div class="user-role">Owner</div>
+				</div>
+			</div>
+
+			<nav>
+				<div class="nav-section">
+					<div class="nav-item active">
+						<span>Overview</span>
+					</div>
+				</div>
+
+				<div class="nav-section">
+					<div class="nav-section-title">Content</div>
+					<div class="nav-item">
+						<span>📝</span>
+						<span>Feedback</span>
+					</div>
+					<div class="nav-item">
+						<span>🗺️</span>
+						<span>Roadmaps</span>
+					</div>
+					<div class="nav-item">
+						<span>🔄</span>
+						<span>Changelog</span>
+					</div>
+				</div>
+
+				<div class="nav-section">
+					<div class="nav-section-title">Advanced</div>
+					<div class="nav-item">
+						<span>⚙️</span>
+						<span>Settings</span>
+					</div>
+				</div>
+			</nav>
+		</aside>
+
+		<!-- Main Content -->
+		<main class="main-content">
+			<div class="header">
+				<h1>Overview</h1>
+				<div class="date-range">
+					<span id="dateRange">Loading...</span>
+					<span>▼</span>
+				</div>
+			</div>
+
+			<!-- KPI Cards -->
+			<div class="kpi-grid">
+				<div class="kpi-card">
+					<div class="kpi-label">Total Feedback</div>
+					<div class="kpi-value" id="kpiTotal">0</div>
+					<div class="kpi-change positive">
+						<span>↑</span>
+						<span>All time</span>
+					</div>
+				</div>
+				<div class="kpi-card">
+					<div class="kpi-label">High Urgency</div>
+					<div class="kpi-value" id="kpiUrgent">0</div>
+					<div class="kpi-change negative">
+						<span>⚠️</span>
+						<span>Requires attention</span>
+					</div>
+				</div>
+				<div class="kpi-card">
+					<div class="kpi-label">Positive Sentiment</div>
+					<div class="kpi-value" id="kpiPositive">0</div>
+					<div class="kpi-change positive">
+						<span>😊</span>
+						<span>Happy users</span>
+					</div>
+				</div>
+				<div class="kpi-card">
+					<div class="kpi-label">Analyzed</div>
+					<div class="kpi-value" id="kpiAnalyzed">0</div>
+					<div class="kpi-change positive">
+						<span>✓</span>
+						<span>Processed</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Content Grid -->
+			<div class="content-grid">
+				<!-- Feedback Type Distribution -->
+				<div class="card">
+					<div class="card-header">
+						<h2 class="card-title">Feedback Type Distribution</h2>
+					</div>
+					<div class="type-distribution" id="typeDistribution">
+						<div class="loading">Loading types...</div>
+					</div>
+				</div>
+
+				<!-- Theme Overview -->
+				<div class="card">
+					<div class="card-header">
+						<h2 class="card-title">Theme Overview</h2>
+					</div>
+					<div class="theme-grid" id="themeOverview">
+						<div class="loading">Loading themes...</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Integrations Card -->
+			<div class="card card-full" style="margin-bottom: 24px;">
+				<div class="card-header">
+					<h2 class="card-title">Connected Integrations</h2>
+				</div>
+				<div class="integrations-grid" id="integrationsGrid">
+					<div class="loading">Loading integrations...</div>
+				</div>
+			</div>
+
+			<!-- Database Management Card -->
+			<div class="card card-full" style="margin-bottom: 24px;">
+				<div class="card-header">
+					<h2 class="card-title">Database Management</h2>
+				</div>
+				<div style="padding: 16px;">
+					<p style="margin-bottom: 16px; color: #6b7280;">
+						Seed the database with realistic Cloudflare product feedback (Workers, Pages, R2, D1, etc.)
+					</p>
+					<div style="display: flex; gap: 12px; flex-wrap: wrap;">
+						<button class="btn btn-primary" onclick="seedDatabase()" id="seedButton">
+							Seed Database with Sample Feedback
+						</button>
+						<button class="btn btn-secondary" onclick="analyzeAll()" id="analyzeAllButton">
+							Analyze All Unanalyzed Feedback
+						</button>
+					</div>
+					<div id="seedMessage" style="margin-top: 12px;"></div>
+				</div>
+			</div>
+
+			<!-- Recent Feedback Table -->
+			<div class="card card-full">
+				<div class="card-header">
+					<h2 class="card-title">Recent Feedback</h2>
+					<div style="display: flex; gap: 8px; align-items: center;">
+						<span id="themeFilterLabel" style="font-size: 12px; color: #6b7280; display: none;"></span>
+						<button id="clearFilterButton" class="btn btn-secondary btn-sm" onclick="clearThemeFilter()" style="display: none;">Clear Filter</button>
+						<button class="btn btn-secondary btn-sm" onclick="loadFeedback()">Refresh</button>
+					</div>
+				</div>
+				<div class="table-container">
+					<table>
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Content</th>
+								<th>Type</th>
+								<th>Theme</th>
+								<th>Sentiment</th>
+								<th>Urgency</th>
+								<th>Created At</th>
+							</tr>
+						</thead>
+						<tbody id="feedbackTableBody">
+							<tr>
+								<td colspan="7" class="loading">Loading feedback...</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<!-- Modal -->
+	<div class="modal-overlay" id="feedbackModal" onclick="closeModal(event)">
+		<div class="modal" onclick="event.stopPropagation()">
+			<div class="modal-header">
+				<h2 class="modal-title">Feedback Details</h2>
+				<button class="modal-close" onclick="closeModal()">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="modal-section">
+					<div class="modal-section-title">Content</div>
+					<div class="modal-content" id="modalContent"></div>
+				</div>
+				<div class="modal-section">
+					<div class="modal-section-title">Details</div>
+					<div class="modal-meta" id="modalMeta"></div>
+				</div>
+				<div class="modal-section">
+					<div class="modal-section-title">AI Suggestions</div>
+					<div id="modalSuggestions">
+						<div class="suggestions-loading">Loading suggestions...</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Integration Modal -->
+	<div class="modal-overlay" id="integrationModal" onclick="closeIntegrationModal(event)">
+		<div class="modal" onclick="event.stopPropagation()">
+			<div class="modal-header">
+				<h2 class="modal-title" id="integrationModalTitle">Integration Feedback</h2>
+				<button class="modal-close" onclick="closeIntegrationModal()">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div id="integrationModalContent"></div>
+			</div>
+		</div>
+	</div>
+
+	<script src="/app.js"></script>
+</body>
 </html>

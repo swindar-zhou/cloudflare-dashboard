@@ -16,6 +16,20 @@
 	},
 	"observability": {
 		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "feedback_db",
+			"database_name": "feedback_db",
+			"database_id": "6dea951f-a959-4286-8632-c25c03535061",
+			"remote": true
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"triggers": {
+		"crons": ["0 9 * * *"]
 	}
 	/**
 	 * Smart Placement
